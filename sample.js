@@ -1,6 +1,6 @@
 const miniDB = require('./miniDB/miniDB');
 
-miniDB.createDocument('testDB',{
+miniDB.create('testDB',{
     username: '2tle',
     date: '2005-01-14',
 });
