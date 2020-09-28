@@ -78,7 +78,7 @@ const result = miniDB.update('testDB',{username: '2tle'},{date: '2005-01-15'});
 
 ### del(collectionName, condition)
 collectionName 컬렉션에서 condition 조건에 일치하는 문서들을 삭제합니다. 삭제에 성공시 true를, 실패시 false를 반환합니다.  
-모든 문서를 삭제할 경우, condition 값을 {} 으로 해주세요.  
+모든 문서를 삭제할 경우, condition 값을 {} 으로 가능합니다. 하지만 `deleteCollection(collectionName)` 을 사용하길 권장합니다.
 Example
 ```
 const miniDB = require('./miniDB/miniDB.js');
