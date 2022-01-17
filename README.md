@@ -1,6 +1,10 @@
 # miniDB-for-JS
-처음 사용할 때는 `testDB`를 삭제한 후 사용해주세요.
 miniDB는 가볍게 사용할 수 있는 NoSQL DB입니다.
+
+
+## IMPORTANT
+Please remove `testDB` when you're using miniDB first time.
+
 
 ## 설치방법
 miniDB 디렉터리를 다운받아 사용할 프로젝트에 넣어주세요.  
