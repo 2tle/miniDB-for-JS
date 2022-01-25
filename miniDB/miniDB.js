@@ -1,1 +1,165 @@
-const fs=require("fs"),uuidv4=require("./modules/uuidv4"),path=require("path");function getDbPath(a){try{fs.statSync(__dirname+"/databases/"+a+"/")}catch(b){if("ENOENT"===b.code){createCollection(a);return __dirname+"/databases/"+a+"/"}}return __dirname+"/databases/"+a+"/"}function createCollection(a){let b=fs.mkdirSync(__dirname+"/databases/"+a+"/");return!!b}function ifChecker(a,b){const c=Object.getOwnPropertyNames(b),d=c.length;let f=0;return c.forEach(function(c){try{a[c]==b[c]&&++f}catch(a){}}),f==d}function read(b,c){const d=getDbPath(b);let e=fs.readdirSync(d),f=[],g=[];for(let a in e)if(".json"===path.extname(e[a])){let b=require(d+e[a]);f.push(b)}let h={};return h[b]=f,JSON.stringify(c)==JSON.stringify({})?h:(f.forEach(a=>{let b=ifChecker(a,c);b&&g.push(a)}),h[b]=g,h)}function create(a,b){try{const c=getDbPath(a);if(b.hasOwnProperty("_id"))throw new Error("`_id` is miniDB's unique property");const d=uuidv4.uuidv4();b._id=d;const e=JSON.stringify(b);fs.writeFileSync(c+d+".json",e);return d}catch(a){return console.error(a),!1}}function deleteCollection(a){try{const b=getDbPath(a);fs.existsSync(b)&&(fs.readdirSync(b).forEach(function(a){let c=b+"/"+a;fs.lstatSync(c).isDirectory()?deleteFolderRecursive(c):fs.unlinkSync(c)}),fs.rmdirSync(b))}catch(a){return!1}return!0}function del(a,b){try{let c=read(a,b);if(1==c.length){const b=getDbPath(a)+c._id+".json";fs.unlinkSync(b)}else c[a].forEach(b=>{fs.unlinkSync(getDbPath(a)+b._id+".json")});0==fs.readdirSync(__dirname+"/databases/"+a+"/").length&&fs.rmdirSync(__dirname+"/databases/"+a+"/")}catch(a){return!1}return!0}function getCollection(){return fs.readdirSync(__dirname+"/databases/")}function update(a,b,c){try{let d=read(a,b)[a];return d.forEach(b=>{const d=Object.getOwnPropertyNames(c),e=b._id;let f=b;d.forEach(a=>{f[a]=c[a]}),fs.writeFileSync(getDbPath(a)+e+".json",JSON.stringify(f))}),!0}catch(a){return a}}module.exports={read:function(a,b){return read(a,b)},create:function(a,b){return create(a,b)},createCollection:function(a){return createCollection(a)},deleteCollection:function(a){return deleteCollection(a)},del:function(a,b){return del(a,b)},getCollection:()=>getCollection(),update:(a,b,c)=>update(a,b,c)};
+const fs = require('fs');
+const uuidv4 = require('./modules/uuidv4');
+const path = require('path');
+
+function getDbPath(collectionName) { 
+    try {
+        fs.statSync(__dirname + '/databases/' + collectionName + '/');
+    } catch (err) {
+        if (err.code === "ENOENT") {
+            const rt = createCollection(collectionName);
+            return __dirname + '/databases/' + collectionName + '/';
+        }
+    }
+    return __dirname + '/databases/' + collectionName + '/';
+}
+
+function createCollection(collectionName) {
+    let generate = fs.mkdirSync(__dirname + '/databases/' + collectionName + '/');
+    if (!generate) return false;
+    else return true;
+}
+
+
+function ifChecker(js1, js2) {
+    const js2Key = Object.getOwnPropertyNames(js2);
+    const js2KeyLength = js2Key.length;
+    let cnt = 0;
+    js2Key.forEach(function (e) {
+        try {
+            if (js1[e] == js2[e]) {
+                cnt = cnt + 1;
+            }
+        } catch (e) {
+
+        }
+    });
+    if (cnt == js2KeyLength) {
+        return true;
+    } else return false;
+}
+
+
+function read(collectionName, jsonI) {
+    const dir = getDbPath(collectionName);
+    let documentList = fs.readdirSync(dir);
+    let readDocumentList = [];
+    let readDocumentListJogun = [];
+    for (let i in documentList) {
+        if (path.extname(documentList[i]) === '.json') {
+            let f1 = require(dir + documentList[i]);
+            readDocumentList.push(f1);
+        }
+    }
+    let a = {};
+    a[collectionName] = readDocumentList;
+    //return a; 
+    if (JSON.stringify(jsonI) == JSON.stringify({})) return a;
+    else {
+        readDocumentList.forEach((e) => {
+            let ifC = ifChecker(e, jsonI);
+            if (ifC) readDocumentListJogun.push(e);
+
+        });
+        a[collectionName] = readDocumentListJogun;
+        return a;
+    }
+}
+
+function create(collectionName, json) {
+    try {
+        const dp = getDbPath(collectionName);
+        if (json.hasOwnProperty('_id')) throw new Error("`_id` is miniDB's unique property");
+        const uuid = uuidv4.uuidv4();
+        json._id = uuid;
+        const strJson = JSON.stringify(json);
+        let returndt = fs.writeFileSync(dp + uuid + '.json', strJson);
+        return uuid;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
+
+
+}
+
+function deleteCollection(collectionName) {
+    try {
+        const path = getDbPath(collectionName);
+        if (fs.existsSync(path)) {
+            fs.readdirSync(path).forEach(function (file, index) {
+                let curPath = path + "/" + file;
+                if (fs.lstatSync(curPath).isDirectory()) {
+
+                    deleteFolderRecursive(curPath);
+
+                } else {
+                    fs.unlinkSync(curPath);
+                }
+            });
+            fs.rmdirSync(path);
+        }
+    } catch (e) {
+        return false;
+    }
+    return true;
+
+}
+
+function del(collectionName, jogunJson) {
+    try {
+        let readOneVal = read(collectionName, jogunJson);
+        if (readOneVal.length == 1) { //fs.unLinkSync(path);
+            const filePath = getDbPath(collectionName) + readOneVal._id + '.json';
+            fs.unlinkSync(filePath);
+        } else {
+            readOneVal[collectionName].forEach((e) => {
+                fs.unlinkSync(getDbPath(collectionName) + e._id + '.json');
+            });
+        }
+
+        if (fs.readdirSync(__dirname + '/databases/' + collectionName + '/').length == 0) {
+            fs.rmdirSync(__dirname + '/databases/' + collectionName + '/');
+        }
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+
+
+function getCollection() {
+    return fs.readdirSync(__dirname + '/databases/');
+}
+
+function update(collectionName, jogunJson, updateJson) {
+    try {
+        let readJson = read(collectionName, jogunJson)[collectionName];
+
+        readJson.forEach((rJson) => {
+            const rjKey = Object.getOwnPropertyNames(updateJson);
+            const docsID = rJson._id;
+            let docsJson = rJson;
+            rjKey.forEach((e) => {
+                docsJson[e] = updateJson[e];
+            });
+            fs.writeFileSync(getDbPath(collectionName) + docsID + '.json', JSON.stringify(docsJson));
+        });
+        return true;
+    } catch (e) {
+        return e;
+    }
+
+}
+
+
+
+module.exports = {
+    read: function (collectionName, json) { return read(collectionName, json); },
+    create: function (cn, js) { return create(cn, js); },
+    createCollection: function (cn) { return createCollection(cn); },
+    deleteCollection: function (cn) { return deleteCollection(cn); },
+    del: function (cn, js) { return del(cn, js); },
+    getCollection: () => { return getCollection(); },
+    update: (cn, js1, js2) => { return update(cn, js1, js2); }
+};
